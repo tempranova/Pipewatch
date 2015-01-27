@@ -1,0 +1,83 @@
+<div ng-controller="GroupPagesController">
+ <section class="container-fluid no-padding row-offcanvas row-offcanvas-right" data-ng-controller="MapController">
+  <div class="first">
+    <div class="col-sm-8 col-xs-11 no-padding">
+        <ui-gmap-google-map id="my-map" center='map.center' zoom='map.zoom' control="map.control">
+            <!-- Pipelines -->
+            <ui-gmap-polyline path='map.transmountainPipeline'></ui-gmap-polyline>
+            <ui-gmap-polygon ng-repeat='polygon in map.currentFirstNationsPolygons' 
+                path='polygon.path' 
+                fill='polygon.fill' 
+                stroke='polygon.stroke'
+                events='polygon.events'>
+            </ui-gmap-polygon>
+            <ui-gmap-marker ng-repeat='marker in markers.news'
+                coords="marker.coords" 
+                options="marker.options" 
+                events="marker.events" 
+                idkey="marker.id"
+                icon='marker.icon'>
+                <ui-gmap-window options="windowOptions" closeClick="closeClick()">
+                <div>{{marker.title}}</div>
+            </ui-gmap-marker>
+            <ui-gmap-marker ng-repeat='marker in markers.updates'
+                coords="marker.coords" 
+                options="marker.options" 
+                events="marker.events" 
+                idkey="marker.id"
+                icon='marker.icon'>
+            </ui-gmap-marker>
+            <ui-gmap-marker ng-repeat='marker in markers.protectors'
+                coords="marker.coords" 
+                options="marker.options" 
+                events="marker.events" 
+                idkey="marker.id"
+                icon='marker.icon'>
+            </ui-gmap-marker>
+        </ui-gmap-google-map>
+    </div>
+    <div class="col-xs-1 visible-xs map-height btn btn-success" type="button" data-toggle="offcanvas">
+        <div class="thetext"><b class="glyphicon glyphicon-circle-arrow-down"></b> Select Map Options </div>
+    </div>
+    <div class="col-sm-4 sidebar-offcanvas">
+        <img src="/packages/contrib/groupPages/public/assets/img/pages/watch.jpg" class="img-responsive">
+        <h3>Pipewatch Map</h3>
+        <p>Help everyone stay up to date and well-informed.</p>
+        <hr>
+        <h5>Map Legend</h5>
+        <div ng-model="currentInformation">{{currentInformation}}</div>
+        <ul class="list-group">
+          <li class="list-group-item">
+                <p class="lead" style="margin-bottom:0px;">First Nations</p>
+                <div class="btn-group">
+                    <label id="firstNationsAll" style="border:1px solid #ccc;" class="btn btn-success" ng-model="firstNationsAll" ng-change="makePolygons(firstNationsAll)" btn-checkbox>Territories</label>
+                    <label id="firstNationsAllLanguages" style="border:1px solid #ccc;" class="btn btn-success" ng-model="firstNationsAllLanguages" ng-change="makeGeoJSON(firstNationsAllLanguages)" btn-checkbox>Languages</label>
+                </div>
+          </li>
+          <li class="list-group-item">
+            <p class="lead" style="margin-bottom:0px;">Municipal maps</p>
+            <select ng-model="selectedOverlay" ng-change="changeOverlays(selectedOverlay)" id="municipal-maps" class="form-control">
+              <option>Click to select a local map</option>
+              <option value="none">Remove all overlays</option>
+              <option value="all">See all overlays</option>
+              <option ng-repeat="(slug, overlay) in map.allOverlays" value="{{slug}}">{{overlay.string}}</option>
+            </select>
+          </li>
+          <li class="list-group-item">
+                <p class="lead" style="margin-bottom:0px;">Map Markers</p>
+                <div class="btn-group">
+                    <label id="spillsAll" style="border:1px solid #ccc;" class="btn btn-primary" ng-model="spillsAll" ng-change="" btn-checkbox>Spills</label>
+                    <label id="proposedAll" style="border:1px solid #ccc;" class="btn btn-primary" ng-model="proposedAll" ng-change="" btn-checkbox>Proposed</label>
+                    <label id="updatesAll" style="border:1px solid #ccc;" class="btn btn-primary" ng-model="updatesAll" ng-change="" btn-checkbox>Updates</label>
+                </div>
+          </li>
+          <li ng-show="loggedIn===true" ng-hide="!loggedIn||loggedIn===false" class="list-group-item">
+              <p class="lead" style="margin-bottom:0px;">Submit Update</p>
+              <button class="btn btn-default" ng-click="drawingManagerOn()">Select location</button>
+              <button class="btn btn-danger" ng-show="createUpdate===true" ng-hide="!createUpdate||createUpdate===false" ng-click="cancelUpdates()">Cancel Update</button>
+          </li>
+        </ul>
+    </div>
+ </div>
+</section>
+</div>

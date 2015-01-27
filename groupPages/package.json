@@ -1,0 +1,18 @@
+{
+  "name": "groupPages",
+  "version": "0.0.1",
+  "description": "Group pages package",
+  "author": {
+    "name": "Victor Temprano"
+  },
+  "mean": "0.4.x",
+  "engines": {
+    "node": "0.10.x",
+    "npm": "1.4.x"
+  },
+  "dependencies" : {
+      "users" : "0.0.1",
+      "upload": "0.3.3"
+  },
+  "license": "MIT"
+}

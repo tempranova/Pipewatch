@@ -1,0 +1,15 @@
+{
+  "name": "users",
+  "version": "0.0.1",
+  "description": "Users package customized for Pipewatch",
+  "author": {
+    "name": "Victor Temprano from Linnovate"
+  },
+  "mean": "0.4.x",
+  "engines": {
+    "node": "0.10.x",
+    "npm": "1.4.x"
+  },
+  "dependencies": {},
+  "license": "MIT"
+}

@@ -1,0 +1,45 @@
+<div ng-controller="GroupPagesController">
+ <section class="container-fluid no-padding" data-ng-controller="MediaPageController">
+  <img src="/packages/contrib/groupPages/public/assets/img/pages/media.jpg" class="img-responsive">
+  <div class="col-md-12 first">
+    <div class="col-sm-8">
+        <h3>Videos, images, files and more</h3>
+        <p>Please feel free to upload any Burnaby Mountain or other pipeline related media here. It will be organized and stored for documentaries and archives.</p>
+        <!-- Upload abilities, open to all-->
+        <div>
+            <p>For big uploads, use Google Storage. For images, use the local upload. Only admins can upload to pages right now.</p>
+            <button class="btn-primary" ng-click="googleStorage()">Google upload (large files)</button>
+            <div ng-controller="GoogleStorageController" ng-show="googleStorage.editingAllowed===true" class="ng-hide">
+                <button id="authorize-button" style="visibility: hidden">Authorize</button>
+                <button ng-click="listBuckets()">List Buckets</button>
+            </div>
+            <button class="btn-primary" ng-click="uploadFile()">Upload Image</button>
+            <div ng-controller="MeanUploadController" ng-show="uploadFile.editingAllowed===true" class="ng-hide">
+              <mean-upload file-dest="'/files/photos/'"
+                upload-callback="uploadFinished2(files)"
+                upload-file-callback="uploadFileCallback2(file)"></mean-upload>
+                <div class="col-md-3 col-sm-4 col-xs-6">
+                    <div data-ng-repeat="img in newImageAttachments">
+                        <img class="img-responsive" data-ng-src="{{img.src}}" alt="">
+                        <p>Added!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="newsList">
+            <h4>Media Pages List</h4>
+            <div ng-repeat="page in media">
+                <span data-ng-if="hasAuthorization(page)">
+                  <a href="/#!/groupPages/{{page._id}}/edit">Edit</a> | 
+                  <a data-ng-click="drop(page);remove(page)">Delete</a> ||
+                </span>
+                <a data-ng-href="#!/groupPages/{{page._id}}">{{page.title}}</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-4">
+        <h5>List or top galleries</h5>
+    </div>
+ </div>
+</section>
+</div>
