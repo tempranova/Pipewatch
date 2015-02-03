@@ -11,28 +11,32 @@
                 stroke='polygon.stroke'
                 events='polygon.events'>
             </ui-gmap-polygon>
-            <ui-gmap-marker ng-repeat='marker in markers.news'
+            <ui-gmap-marker ng-if="spillsAll" ng-repeat='marker in markers.spillsAll'
                 coords="marker.coords" 
                 options="marker.options" 
                 events="marker.events" 
                 idkey="marker.id"
                 icon='marker.icon'>
                 <ui-gmap-window options="windowOptions" closeClick="closeClick()">
-                <div>{{marker.title}}</div>
+                <div><p>{{marker.title}}</p><a href="#!/groupPages/{{marker.id}}">Details</a></div>
             </ui-gmap-marker>
-            <ui-gmap-marker ng-repeat='marker in markers.updates'
+            <ui-gmap-marker ng-if="updatesAll" ng-repeat='marker in markers.updatesAll'
                 coords="marker.coords" 
                 options="marker.options" 
                 events="marker.events" 
                 idkey="marker.id"
                 icon='marker.icon'>
+                <ui-gmap-window options="windowOptions" closeClick="closeClick()">
+                <div><p><strong>{{marker.title}}</strong></p><p>{{marker.content}}</p></div>
             </ui-gmap-marker>
-            <ui-gmap-marker ng-repeat='marker in markers.protectors'
+            <ui-gmap-marker ng-if="proposedAll" ng-repeat='marker in markers.proposedAll'
                 coords="marker.coords" 
                 options="marker.options" 
                 events="marker.events" 
                 idkey="marker.id"
                 icon='marker.icon'>
+                <ui-gmap-window options="windowOptions" closeClick="closeClick()">
+                <div><p>{{marker.title}}</p><a href="#!/groupPages/{{marker.id}}">Details</a></div>
             </ui-gmap-marker>
         </ui-gmap-google-map>
     </div>
@@ -66,9 +70,9 @@
           <li class="list-group-item">
                 <p class="lead" style="margin-bottom:0px;">Map Markers</p>
                 <div class="btn-group">
-                    <label id="spillsAll" style="border:1px solid #ccc;" class="btn btn-primary" ng-model="spillsAll" ng-change="" btn-checkbox>Spills</label>
-                    <label id="proposedAll" style="border:1px solid #ccc;" class="btn btn-primary" ng-model="proposedAll" ng-change="" btn-checkbox>Proposed</label>
-                    <label id="updatesAll" style="border:1px solid #ccc;" class="btn btn-primary" ng-model="updatesAll" ng-change="" btn-checkbox>Updates</label>
+                    <label id="spillsAll" class="btn btn-primary" style="border:1px solid #ccc;background-color:#c03639;background-image:radial-gradient(circle, #c03639 80%, #982b2d 81%);" ng-model="spillsAll" ng-change="toggleMarkers(spillsAll)" btn-checkbox>Spills</label>
+                    <label id="proposedAll" style="border:1px solid #ccc;background-color:#22849c;background-image:radial-gradient(circle, #22849c 80%, #196172 81%);" class="btn btn-primary" ng-model="proposedAll" ng-change="toggleMarkers(proposedAll)" btn-checkbox>Proposed</label>
+                    <label id="updatesAll" style="border:1px solid #ccc;background-color:#49bf37;background-image:radial-gradient(circle, #49bf37 80%, #3a972c 81%);" class="btn btn-primary" ng-model="updatesAll" ng-change="toggleMarkers(updatesAll)" btn-checkbox>Updates</label>
                 </div>
           </li>
           <li ng-show="loggedIn===true" ng-hide="!loggedIn||loggedIn===false" class="list-group-item">

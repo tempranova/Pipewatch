@@ -17,6 +17,7 @@
     top:auto !important;
     bottom: 0 !important;
     width: 60px;
+    right: 0;
 }
 .page-header {
     padding-bottom: 0 !important;

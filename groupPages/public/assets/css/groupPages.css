@@ -79,3 +79,9 @@ ul.groupPages li:not(:last-child) {
     padding: 6px 16px !important;
     -webkit-appearance: menu !important;
 }
+.delete-cell {
+    width:5%;
+}
+.delete-cell b {
+    color:#990000;
+}

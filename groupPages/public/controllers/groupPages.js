@@ -1,11 +1,11 @@
-'use strict';
+// 'use strict';
 
 angular.module('mean.groupPages',['uiGmapgoogle-maps','froala'])
 
 // GROUP PAGES CONTROLLER
 // This runs across the site and acts as a parent controller, with most common methods and data embedded in here.
-.controller('GroupPagesController', ['$scope','$sce','$stateParams', '$location', 'Global', 'GroupPages',
-  function($scope,$sce,$stateParams, $location, Global, GroupPages) {
+.controller('GroupPagesController', ['$scope','$sce','$stateParams','$rootScope','$location', 'Global', 'GroupPages',
+  function($scope,$sce,$stateParams, $rootScope,$location, Global, GroupPages) {
     $scope.global = Global;
     var vm = this;
 
@@ -118,6 +118,37 @@ angular.module('mean.groupPages',['uiGmapgoogle-maps','froala'])
         $scope.sanitizedContent = $sce.trustAsHtml(vm.groupPage.content);
       });
     };
+    
+    // Functions for stuff across media and protector pages
+    $scope.googleStorage = function() { 
+        $scope.googleStorage.editingAllowed=true;
+    }
+    $scope.manageMembers = function() { 
+        $scope.manageMembers.editingAllowed=true;
+    }
+    $scope.uploadFile = function() {
+        // If button exists and is pressed, fields are shown
+        $scope.uploadFile.editingAllowed=true;
+    }
+    $scope.uploadFileCallback2 = function(file) {
+        console.log('1 File uploaded');
+    }
+    $scope.uploadFinished2 = function(files) {
+        // Get parent page ID
+        GroupPages.get({
+            groupPageId: $stateParams.groupPageId
+        }, function(groupPage) {
+            files.forEach(function(element, index, array) {
+                if(!groupPage.imageAttachments) {
+                    groupPage.imageAttachments = [];
+                }
+                // Add to parent page
+                groupPage.imageAttachments.push(element);
+                $rootScope.imageAttachments.push(element);
+                groupPage.$update();
+            });
+        });
+   }
   }
 ])
 // CREATE PAGE CONTROLLER
@@ -200,14 +231,10 @@ angular.module('mean.groupPages',['uiGmapgoogle-maps','froala'])
             groupPageId: $stateParams.groupPageId
           }, function(groupPage) {
              // Check and remove unneeded elements from page
-            if(groupPage.category==='Media') {
-                angular.element("#ProtectorPageController").remove();
-            } else if(groupPage.category==='Protector') {
-                angular.element("#MediaPageController").remove();
-            }
+            $scope.groupPageCategory = groupPage.category;
             // Set image attachments to be on the $scope
-            $scope.imageAttachments = [];
-            $scope.imageAttachments = groupPage.imageAttachments;
+            $rootScope.imageAttachments = [];
+            $rootScope.imageAttachments = groupPage.imageAttachments;
 
             // Collect and display child pages
             $scope.global = Global;
@@ -229,6 +256,12 @@ angular.module('mean.groupPages',['uiGmapgoogle-maps','froala'])
                     $scope.editingAllowed=false;
                 }
             }
+            $scope.deleteImage = function(img) {
+                var index = groupPage.imageAttachments.indexOf(img);
+                $scope.imageAttachments.splice(index, 1);
+                groupPage.imageAttachments.splice(index, 1);
+                groupPage.$update();
+            }
         });
        
           
@@ -237,44 +270,10 @@ angular.module('mean.groupPages',['uiGmapgoogle-maps','froala'])
             // If button exists and is pressed, fields are shown
             $scope.addTextarea.editingAllowed=true;
         }
-        $scope.googleStorage = function() { 
-            $scope.googleStorage.editingAllowed=true;
-        }
-        $scope.manageMembers = function() { 
-            $scope.manageMembers.editingAllowed=true;
-        }
         $scope.rearrangeTextareas = function() {
             // If button exists and is pressed, fields are shown
             $scope.rearrangeTextareas.editingAllowed=true;
         }
-        $scope.uploadFile = function() {
-            // If button exists and is pressed, fields are shown
-            $scope.uploadFile.editingAllowed=true;
-        }
-        $scope.uploadFileCallback2 = function(file) {
-            console.log('1 File uploaded');
-        }
-        $scope.uploadFinished2 = function(files) {
-            // Get parent page ID
-            GroupPages.get({
-                groupPageId: $stateParams.groupPageId
-            }, function(groupPage) {
-                files.forEach(function(element, index, array) {
-                if(!groupPage.imageAttachments) {
-                    groupPage.imageAttachments = [];
-                }
-                // Add to parent page
-                groupPage.imageAttachments.push(element);
-                if(!$scope.newImageAttachments) {
-                    $scope.newImageAttachments = [];
-                }
-                // Add to current $scope
-                $scope.newImageAttachments.push(element);
-                $scope.imageAttachments.push(element);
-                groupPage.$update();
-                });
-            });
-       }
     }
 ])
     // Creating textareas (childpages)
@@ -429,6 +428,206 @@ angular.module('mean.groupPages',['uiGmapgoogle-maps','froala'])
         }
     }])
 
+// NEWS CONTROLLER 
+    // admin.html listing
+    .controller('NewsController',['$scope','$stateParams','GroupPages',
+      function($scope,$stateParams,GroupPages) {
+          GroupPages.get({
+            groupPageId: $stateParams.groupPageId
+          }, function(groupPage) {
+            if(groupPage.customInformation) {
+                $scope.coords = groupPage.coords;
+                $scope.newsCategory = groupPage.customInformation.newsCategory;
+                if($scope.newsCategory==='Proposed project') {
+                    $scope.news = groupPage.customInformation;
+                    if(!$scope.news) {
+                        $scope.news = {};
+                    }
+                    if(!$scope.news.sourceItems) {
+                        $scope.news.sourceItems = [];
+                    }
+                    $scope.news.newSourceItems = [];
+                } else if ($scope.newsCategory==='Spill') {
+                    $scope.spill = groupPage.customInformation;
+                    if(!$scope.spill) {
+                        $scope.spill = {};
+                    }
+                    if(!$scope.spill.spillItems) {
+                        $scope.spill.spillItems = [];
+                    }
+                    $scope.spill.newSpillItems = [];
+                }
+            }
+            $scope.saveData = function () {
+                if (!groupPage.updated) {
+                  groupPage.updated = [];
+                }
+                groupPage.updated.push(new Date().getTime());
+                
+                if($scope.newsCategory==='Proposed project') {
+                    groupPage.customInformation.newsCategory = 'Proposed project';
+                    $scope.news.newSourceItems.forEach(function (element,index,array) {
+                        groupPage.customInformation.sourceItems.push(element);
+                    });
+                } else if ($scope.newsCategory==='Spill') {
+                    groupPage.customInformation.newsCategory = 'Spill';
+                    groupPage.customInformation.type = $scope.spill.type;
+                    groupPage.customInformation.cause = $scope.spill.cause;
+                    var arrayArray = ['newSpillItems','newCompanyItems','newLegalItems','newEnvironmentalItems','newSourceItems'];
+                    var arrayArray2 = ['spillItems','companyItems','legalItems','environmentalItems','sourceItems'];
+                    arrayArray.forEach(function (element,index,array) {
+                        $scope.spill[element].forEach(function (element2,index2,array2) {
+                            var thisArraySlug = arrayArray2[index];
+                            if(!groupPage.customInformation[thisArraySlug]) {
+                                groupPage.customInformation[thisArraySlug] = [];
+                            }
+                            groupPage.customInformation[thisArraySlug].push(element2);
+                        });
+                        $scope.spill[element] = [];
+                    });
+                }
+                
+                groupPage.$update(function(response) {
+                    if($scope.newsCategory==='Proposed project') {
+                        $scope.news = response.customInformation;
+                    } else if ($scope.newsCategory==='Spill') {
+                        $scope.spill = response.customInformation;
+                    }
+                    location.reload();
+                });
+            };
+            $scope.removeThis = function (thisArray,thisItem) {
+                if($scope.newsCategory==='Proposed project') {
+                    groupPage.customInformation.newsCategory = 'Proposed project';
+                    var index = $scope.news[thisArray].indexOf(thisItem);
+                    $scope.news[thisArray].splice(index, 1);
+                    groupPage.customInformation[thisArray] = $scope.news[thisArray];
+                    groupPage.$update();
+                } else if ($scope.newsCategory==='Spill') {
+                    groupPage.customInformation.newsCategory = 'Spill';
+                    var index = $scope.spill[thisArray].indexOf(thisItem);
+                    $scope.spill[thisArray].splice(index, 1);
+                    groupPage.customInformation[thisArray] = $scope.spill[thisArray];
+                    groupPage.$update();
+                }
+            }
+            $scope.editDetails = function () {
+                $scope.mapOptions = {};
+                $scope.mapOptions.editDetails = true;
+            }
+          });
+          
+        $scope.createNews = function () {
+              // Number of sources
+              $scope.addSource = function () {
+                  var thisSourceItem = {
+                      name : '', // ocean, river, etc
+                      link : '', // array
+                      author : '', // array
+                      date : '',
+                      title: '',
+                      summary : '' // true or false
+                  }
+                  $scope.news.newSourceItems.push(thisSourceItem);
+              }
+              $scope.removeSource = function (thisSource) {
+                  var index = $scope.news.newSourceItems.indexOf(thisSource);
+                  $scope.news.newSourceItems.splice(index, 1);
+              }
+          }
+          // SPILL SETTINGS
+          $scope.createSpill = function () {
+              // Setting basic variables
+              $scope.spill.types = ['Pipeline','Train','Automobile','Ship','Other'];
+              $scope.spill.type = $scope.spill.types[0];
+
+              $scope.spill.causes = ['Mechanical','Human Error','Maintenance','Unknown','Other'];
+              $scope.spill.cause = $scope.spill.causes[0];
+
+              // Add new spill amount
+              $scope.addSpillAmount = function () {
+                  var thisSpillItem = {
+                      type : 'Gasoline', // Set label
+                      amount : '',
+                      amountsTypes : ['Gasoline','Oil','Diesel','Chemicals','Other']
+                  }
+                  $scope.spill.newSpillItems.push(thisSpillItem);
+              }
+              $scope.removeSpillAmount = function (thisSpillAmount) {
+                  var index = $scope.spill.newSpillItems.indexOf(thisSpillAmount);
+                  $scope.spill.newSpillItems.splice(index, 1);
+              }
+
+              // Number of legal items
+              $scope.spill.newLegalItems = [];
+              $scope.addLegal = function () {
+                  var thisLegalItem = {
+                      plaintiff : '',
+                      defendant : '',
+                      verdict : '',
+                      fine : '',
+                      punishment : '',
+                      description : '' // cost, etc details can go here
+                  }
+                  $scope.spill.newLegalItems.push(thisLegalItem);
+              }
+              $scope.removeLegal = function (thisLegal) {
+                  var index = $scope.spill.newLegalItems.indexOf(thisLegal);
+                  $scope.spill.newLegalItems.splice(index, 1);
+              }   
+
+               // Number of environmental items
+              $scope.spill.newEnvironmentalItems = [];
+              $scope.addEnvironmental = function () {
+                  var thisEnvironmentalItem = {
+                      area : '', // ocean, river, etc
+                      species : '', // array
+                      chemicals : '', // array
+                      fine : '',
+                      cleanedUp : '', // true or false
+                      description : '' // custom details
+                  }
+                  $scope.spill.newEnvironmentalItems.push(thisEnvironmentalItem);
+              }
+              $scope.removeEnvironmental = function (thisEnvironmental) {
+                  var index = $scope.spill.newEnvironmentalItems.indexOf(thisEnvironmental);
+                  $scope.spill.newEnvironmentalItems.splice(index, 1);
+              }
+
+              // Number of sources
+              $scope.spill.newSourceItems = [];
+              $scope.addSource = function () {
+                  var thisSourceItem = {
+                      name : '', // ocean, river, etc
+                      link : '', // array
+                      author : '', // array
+                      date : '',
+                      title: '',
+                      summary : '' // true or false
+                  }
+                  $scope.spill.newSourceItems.push(thisSourceItem);
+              }
+              $scope.removeSource = function (thisSource) {
+                  var index = $scope.spill.newSourceItems.indexOf(thisSource);
+                  $scope.spill.newSourceItems.splice(index, 1);
+              }
+
+              // Number of companies
+              $scope.spill.newCompanyItems = [];
+              $scope.addCompany = function () {
+                  var thisCompany = {
+                      name : '', // ocean, river, etc
+                      website : '', // array
+                  }
+                  $scope.spill.newCompanyItems.push(thisCompany);
+              }
+              $scope.removeCompany = function (thisCompany) {
+                  var index = $scope.spill.newCompanyItems.indexOf(thisCompany);
+                  $scope.spill.newCompanyItems.splice(index, 1);
+              }
+              $scope.spill.imageAttachments = []; // Autoattached if uploaded, could also be GCS pointers
+          }
+  }])
 // ADMIN PAGE CONTROLLER 
     // admin.html listing
     .controller('AdminPageController',['$scope', 
@@ -438,7 +637,7 @@ angular.module('mean.groupPages',['uiGmapgoogle-maps','froala'])
     }])
 // MEDIA PAGES CONTROLLER
     // media.html listing
-    .controller('MediaPageController',['$scope','$stateParams','$location','Global','GroupPages', 
+    .controller('MediaPageListController',['$scope','$stateParams','$location','Global','GroupPages', 
       function($scope,$stateParams,$location,Global,GroupPages) {
         $scope.media = []; 
         GroupPages.query(function(groupPages) {
@@ -452,70 +651,52 @@ angular.module('mean.groupPages',['uiGmapgoogle-maps','froala'])
             var index = $scope.media.indexOf(page);
             $scope.media.splice(index, 1);
         }
-    }])
-    .controller('MediaPageController', ['$scope', '$stateParams', '$rootScope', 'Global', 'GroupPages', 
-      function($scope,$stateParams,$rootScope,Global,GroupPages) {
-        // Check for user permissions and then adjust $scope.editingAllowed to true
-        GroupPages.get({
-            groupPageId: $stateParams.groupPageId
-        }, function(groupPage) {
-            // Set image attachments to be on the $scope
-            $scope.imageAttachments = [];
-            $scope.imageAttachments = groupPage.imageAttachments;
-            
-            $scope.global = Global;
-            if($scope.global.user._id===groupPage.user._id) {
-                $scope.editingAllowed=true;
-                // Get childrenGroupPageIDs, get the multidimensional array, and give to $scope
-                groupPage.childrenGroupPageArrays.forEach(function(element, index, array) {
-                    if(!$scope.childrenGroupPageArraysNow) {
-                        $scope.childrenGroupPageArraysNow = [];
-                    }
-                    var isItTrue = privacyCheck(element);
-                    if (isItTrue===true) {
-                        $scope.childrenGroupPageArraysNow.push(element);
-                    }
-                });
-            } else {
-                $scope.editingAllowed=false;
-            }
-        });
-        $scope.googleStorage = function() { 
-            $scope.googleStorage.editingAllowed=true;
-        }
-        $scope.manageMembers = function() { 
-            $scope.manageMembers.editingAllowed=true;
-        }
-        $scope.uploadFile = function() {
-            // If button exists and is pressed, fields are shown
-            $scope.uploadFile.editingAllowed=true;
-        }
-        $scope.uploadFileCallback2 = function(file) {
-            console.log('1 File uploaded');
-        }
-        $scope.uploadFinished2 = function(files) {
-            // Get parent page ID
+        $scope.getMediaPost = function() {
             GroupPages.get({
-                groupPageId: $stateParams.groupPageId
+                groupPageId: '54c87d0e75f1415f1da57e74'
+              }, function(groupPage) {
+                $scope.imageAttachments = [];
+                $scope.imageAttachments = groupPage.imageAttachments;
+                $scope.isAdminOfMedia = function() {
+                  if (!groupPage || !groupPage.user) return false;
+                  return $scope.global.isAdmin || groupPage.user._id === $scope.global.user._id;
+                };
+            });
+        }
+        $scope.uploadFinished3 = function(files) {
+            GroupPages.get({
+                groupPageId: '54c87d0e75f1415f1da57e74'
             }, function(groupPage) {
                 files.forEach(function(element, index, array) {
-                if(!groupPage.imageAttachments) {
-                    groupPage.imageAttachments = [];
-                }
-                // Add to parent page
-                groupPage.imageAttachments.push(element);
-                if(!$scope.newImageAttachments) {
-                    $scope.newImageAttachments = [];
-                }
-                // Add to current $scope
-                $scope.newImageAttachments.push(element);
-                $scope.imageAttachments.push(element);
-                groupPage.$update();
+                    if(!groupPage.imageAttachments) {
+                        groupPage.imageAttachments = [];
+                    }
+                    // Add to parent page
+                    groupPage.imageAttachments.push(element);
+                    if(!$scope.newImageAttachments) {
+                        $scope.newImageAttachments = [];
+                    }
+                    // Add to current $scope
+                    if(!$scope.imageAttachments) {
+                        $scope.imageAttachments = [];
+                    }
+                    $scope.imageAttachments.push(element);
+                    groupPage.$update();
                 });
             });
        }
-    }
-])
+       $scope.deleteImageThisPage = function(img) {
+            GroupPages.get({
+                groupPageId: '54c87d0e75f1415f1da57e74'
+            }, function(groupPage) {
+                // Remove from parent page
+                var index = groupPage.imageAttachments.indexOf(img);
+                $scope.imageAttachments.splice(index, 1);
+                groupPage.imageAttachments.splice(index, 1);
+                groupPage.$update();
+           });
+       }
+    }])
     // Functions common to media and protector
     .controller('ManageMembersController', ['$scope','$stateParams','Global','Users','GroupPages', function($scope,$stateParams,Global,Users,GroupPages) {
         $scope.user = {};
@@ -543,13 +724,12 @@ angular.module('mean.groupPages',['uiGmapgoogle-maps','froala'])
             var apiKey = 'AIzaSyDehaf7vOoCTUBMv0nun_VDZMQgHx5UUZw';
             var scopes = 'https://www.googleapis.com/auth/devstorage.full_control';
             var API_VERSION = 'v1';
-            var BUCKET = 'code-sample-bucket-' + Date.now();
+            var BUCKET = 'maindir';
             var object = "";
             var GROUP = 'group-00b4903a97821a9c0a025588929fc357427a1fc7ba4494be6ac315e346ddc5b0';
             var ENTITY = 'allUsers';
             var ROLE = 'READER';
             var ROLE_OBJECT = 'READER';
-            checkAuth();
             function executeRequest(request, apiRequestName) {
                 request.execute(function(resp) {
                     console.log(resp);
@@ -589,13 +769,113 @@ angular.module('mean.groupPages',['uiGmapgoogle-maps','froala'])
             function initializeApi() {
               gapi.client.load('storage', API_VERSION);
             }
-            $scope.listBuckets = function() {
+            function insertBucket() {
+              resource = {
+                'name': BUCKET
+              };
+
+              var request = gapi.client.storage.buckets.insert({
+                  'project': PROJECT,
+                  'resource': resource
+              });
+              executeRequest(request, 'insertBucket');
+            }
+            
+            // upload file to gcs
+        
+            function deleteObject() {
+              var request = gapi.client.storage.objects.delete({
+                  'bucket': BUCKET,
+                  'object': object
+              });
+              executeRequest(request, 'deleteObject');
+            }
+        
+            $scope.insertObject = function () {
+              try{
+                var fileData = $("#filePicker")[0].files[0];
+                console.log(fileData);
+              } 
+              catch(e) {
+                //'Insert Object' selected from the API Commands select list
+                //Display insert object button and then exit function
+                filePicker.style.display = 'block';
+                return;
+              }
+              const boundary = '-------314159265358979323846';
+              const delimiter = "\r\n--" + boundary + "\r\n";
+              const close_delim = "\r\n--" + boundary + "--";
+
+              var reader = new FileReader();
+              reader.readAsBinaryString(fileData);
+              reader.onload = function(e) {
+                var contentType = fileData.type || 'application/octet-stream';
+                var metadata = {
+                  'name': fileData.name,
+                  'mimeType': contentType
+                };
+
+                var base64Data = btoa(reader.result);
+                var multipartRequestBody =
+                  delimiter +
+                  'Content-Type: application/json\r\n\r\n' +
+                  JSON.stringify(metadata) +
+                  delimiter +
+                  'Content-Type: ' + contentType + '\r\n' +
+                  'Content-Transfer-Encoding: base64\r\n' +
+                  '\r\n' +
+                  base64Data +
+                  close_delim;
+
+                //Note: gapi.client.storage.objects.insert() can only insert
+                //small objects (under 64k) so to support larger file sizes
+                //we're using the generic HTTP request method gapi.client.request()
+                var request = gapi.client.request({
+                  'path': '/upload/storage/' + API_VERSION + '/b/' + BUCKET + '/o',
+                  'method': 'POST',
+                  'params': {'uploadType': 'multipart'},
+                  'headers': {
+                    'x-goog-acl'  : 'public-read',
+                    'Content-Type': 'multipart/mixed; boundary="' + boundary + '"'
+                  },
+                  'body': multipartRequestBody});
+                  //Remove the current API result entry in the main-content div
+                try{
+                  //Execute the insert object request
+                  executeRequest(request, 'insertObject');
+                  //Store the name of the inserted object 
+                  object = fileData.name;         
+                }
+                catch(e) {
+                  alert('An error has occurred: ' + e.message);
+                }
+              }
+            }
+            
+            $scope.connectGoogleStorage = function() {
+                if(gapi.client.storage) {
+                    $scope.connectedToGoogleStorage = true;
+                } else {
+                    $scope.connectedToGoogleStorage = false;
+                }
+                checkAuth();
                 // Actually do a request of some kind in here
                 var request = gapi.client.storage.buckets.list({
                     'project': 'pw9201284'
                 });
                 executeRequest(request, 'listBuckets');
             }
+          $scope.getBucketFiles = function() {
+              var request = gapi.client.storage.objects.list({
+                'bucket': BUCKET
+              });
+              request.execute(function(resp) {
+                  console.log(resp);
+                // Add to file attachments
+                $scope.googleFileAttachments = resp.items;
+                $scope.$apply();
+              });
+          }
     }])
 // MAP CONTROLLER 
     // map.html
@@ -606,6 +886,13 @@ angular.module('mean.groupPages',['uiGmapgoogle-maps','froala'])
         $('[data-toggle="offcanvas"]').click(function () {
             $('.row-offcanvas').toggleClass('active')
         });
+        // All updates displayed by default
+        $scope.spillsAll = true;
+        $scope.proposedAll = true;
+        $scope.updatesAll = true;
+        $scope.toggleMarkers = function (buttonVar) {
+            $scope[buttonVar] = false;
+        }
         
         // Auth check
         $scope.hasAuthorization = function(groupPage) {
@@ -629,19 +916,60 @@ angular.module('mean.groupPages',['uiGmapgoogle-maps','froala'])
         };
     // Putting markers on the map
         $rootScope.markers = {
-            news        : {},
-            updates     : {},
-            protectors  : {},
+            spillsAll      : {},
+            updatesAll     : {},
+            proposedAll    : {},
         };
         GroupPages.query(function(groupPages) {
             groupPages.forEach(function(element,index,array) {
                 if(element.category==='News') {
-                    $rootScope.markers.news[element._id] = {
-                        id : element._id,
-                        coords : element.coords,
-                        icon : element.icon,
-                        title : element.title,
-                        content : element.content,
+                    // Icon key (plain updates vs spill icons vs types of facilities)
+                    if(!element.customInformation.newsCategory) {
+                        var thisIcon = '/packages/contrib/groupPages/public/assets/img/marker-icons/information.png';
+                        // Create new marker
+                        $rootScope.markers.updatesAll[element._id] = {
+                            id : element._id,
+                            coords : element.coords,
+                            icon : thisIcon,
+                            title : element.title,
+                            content : element.content,
+                            options : {animation: google.maps.Animation.DROP }
+                        }
+                    }
+                    if(element.customInformation.newsCategory==='Proposed project') {
+                        var thisIcon = '/packages/contrib/groupPages/public/assets/img/marker-icons/museum_industry.png';
+                        // Create new marker
+                        $rootScope.markers.proposedAll[element._id] = {
+                            id : element._id,
+                            coords : element.coords,
+                            icon : thisIcon,
+                            title : element.title,
+                            content : element.content,
+                            options : {animation: google.maps.Animation.DROP }
+                        }
+                    }
+                    if(element.customInformation.newsCategory==='Spill') {
+                        if(element.customInformation.type==='Pipeline') {
+                            var thisIcon = '/packages/contrib/groupPages/public/assets/img/marker-icons/blast.png';
+                        }
+                        if(element.customInformation.type==='Train') {
+                            var thisIcon = '/packages/contrib/groupPages/public/assets/img/marker-icons/train.png';
+                        }
+                        if(element.customInformation.type==='Automobile') {
+                            var thisIcon = '/packages/contrib/groupPages/public/assets/img/marker-icons/caraccident.png';
+                        }
+                        if(element.customInformation.type==='Ship') {
+                            var thisIcon = '/packages/contrib/groupPages/public/assets/img/marker-icons/shipwreck.png';
+                        }
+                        // Create new spill marker
+                        $rootScope.markers.spillsAll[element._id] = {
+                            id : element._id,
+                            coords : element.coords,
+                            icon : thisIcon,
+                            title : element.title,
+                            content : element.content,
+                            options : {animation: google.maps.Animation.DROP }
+                        }
                     }
                 }
             });
@@ -837,8 +1165,8 @@ angular.module('mean.groupPages',['uiGmapgoogle-maps','froala'])
         }
 }])
     // Map submission addition
-    .controller('ModalInstanceCtrl', ['$rootScope','$scope','$modalInstance','$modal','GroupPages','coords',
-        function ($rootScope,$scope,$modalInstance,$modal,GroupPages,coords) {
+    .controller('ModalInstanceCtrl', ['$rootScope','$scope','$modalInstance','$location','$modal','GroupPages','coords',
+        function ($rootScope,$scope,$modalInstance,$location,$modal,GroupPages,coords) {
       // groupPage categories (can be a factory)
       $scope.categories = ['Map update','Spill','Proposed project'];
       $scope.category = $scope.categories[0];
@@ -846,133 +1174,12 @@ angular.module('mean.groupPages',['uiGmapgoogle-maps','froala'])
       // groupPage privacy settings (can be a factory)
       $scope.privacies = ['Public','Logged In Only','Selected Members Only','Private'];
       $scope.privacy = $scope.privacies[0];
-    
-      // NEWS SETTINGS
-      $scope.createNews = function () {
-          $scope.news = {};
-          // Number of sources
-          $scope.news.sources = []; // { name : 'New York Times', link : 'http://etc.com', author : 'Jim Bob', date : 'June 15 2011' } // date optional
-          $scope.news.sourceItems = [];
-          $scope.addSource = function () {
-              var thisSourceItem = {
-                  name : '', // ocean, river, etc
-                  link : '', // array
-                  author : '', // array
-                  date : '',
-                  title: '',
-                  summary : '' // true or false
-              }
-              $scope.news.sourceItems.push(thisSourceItem);
-          }
-          $scope.removeSource = function (thisSource) {
-              var index = $scope.news.sourceItems.indexOf(thisSource);
-              $scope.news.sourceItems.splice(index, 1);
-          }
+      $scope.createProposedProject = function () {
+          $scope.category = 'Proposed project';
       }
-      // SPILL SETTINGS
       $scope.createSpill = function () {
-          // Setting basic variables
-          $scope.spill = {};
-          $scope.spill.types = ['Pipeline','Train','Automobile','Ship','Other'];
-          $scope.spill.type = $scope.spill.types[0];
-
-          $scope.spill.causes = ['Mechanical','Human Error','Maintenance','Unknown','Other'];
-          $scope.spill.cause = $scope.spill.causes[0];
-
-          // Number of spill items
-          $scope.spill.spillItems = [];
-          var emptyFirstSpillItem = {
-              type : 'Gasoline', // Set label
-              amount : '',
-              amountsTypes : ['Gasoline','Oil','Diesel','Chemicals','Other']
-          }
-          $scope.spill.spillItems.push(emptyFirstSpillItem);
-          // Add new spill amount
-          $scope.addSpillAmount = function () {
-              var thisSpillItem = {
-                  type : 'Gasoline', // Set label
-                  amount : '',
-                  amountsTypes : ['Gasoline','Oil','Diesel','Chemicals','Other']
-              }
-              $scope.spill.spillItems.push(thisSpillItem);
-          }
-          $scope.removeSpillAmount = function (thisSpillAmount) {
-              var index = $scope.spill.spillItems.indexOf(thisSpillAmount);
-              $scope.spill.spillItems.splice(index, 1);
-          }
-  
-          // Number of legal items
-          $scope.spill.legalItems = [];
-          $scope.addLegal = function () {
-              var thisLegalItem = {
-                  plaintiff : '',
-                  defendant : '',
-                  verdict : '',
-                  fine : '',
-                  punishment : '',
-                  description : '' // cost, etc details can go here
-              }
-              $scope.spill.legalItems.push(thisLegalItem);
-          }
-          $scope.removeLegal = function (thisLegal) {
-              var index = $scope.spill.legalItems.indexOf(thisLegal);
-              $scope.spill.legalItems.splice(index, 1);
-          }   
-          
-           // Number of environmental items
-          $scope.spill.environmentalItems = [];
-          $scope.addEnvironmental = function () {
-              var thisEnvironmentalItem = {
-                  area : '', // ocean, river, etc
-                  species : '', // array
-                  chemicals : '', // array
-                  fine : '',
-                  cleanedUp : '', // true or false
-                  description : '' // custom details
-              }
-              $scope.spill.environmentalItems.push(thisEnvironmentalItem);
-          }
-          $scope.removeEnvironmental = function (thisEnvironmental) {
-              var index = $scope.spill.environmentalItems.indexOf(thisEnvironmental);
-              $scope.spill.environmentalItems.splice(index, 1);
-          }
-          
-          // Number of sources
-          $scope.spill.sources = []; // { name : 'New York Times', link : 'http://etc.com', author : 'Jim Bob', date : 'June 15 2011' } // date optional
-          $scope.spill.sourceItems = [];
-          $scope.addSource = function () {
-              var thisSourceItem = {
-                  name : '', // ocean, river, etc
-                  link : '', // array
-                  author : '', // array
-                  date : '',
-                  title: '',
-                  summary : '' // true or false
-              }
-              $scope.spill.sourceItems.push(thisSourceItem);
-          }
-          $scope.removeSource = function (thisSource) {
-              var index = $scope.spill.sourceItems.indexOf(thisSource);
-              $scope.spill.sourceItems.splice(index, 1);
-          }
-          
-          // Number of companies
-          $scope.spill.companies = []; // { name : 'New York Times', link : 'http://etc.com', author : 'Jim Bob', date : 'June 15 2011' } // date optional
-          $scope.spill.companyItems = [];
-          $scope.addCompany = function () {
-              var thisCompany = {
-                  name : '', // ocean, river, etc
-                  website : '', // array
-              }
-              $scope.spill.companyItems.push(thisCompany);
-          }
-          $scope.removeCompany = function (thisCompany) {
-              var index = $scope.spill.companyItems.indexOf(thisCompany);
-              $scope.spill.companyItems.splice(index, 1);
-          }
-          $scope.spill.imageAttachments = []; // Autoattached if uploaded, could also be GCS pointers
+          $scope.category = 'Spill';
       }
-    
       $scope.create = function(isValid) {
           if (isValid) {
             // Create new post
@@ -981,12 +1188,18 @@ angular.module('mean.groupPages',['uiGmapgoogle-maps','froala'])
               content: this.content,
               category: 'News',
               privacy: $scope.privacy,
-              coords: coords
+              coords: coords,
+              customInformation: {
+                  newsCategory  : $scope.category
+              }
             });
             newUpdate.$save(function(response) {
                 $rootScope.markers.news[response._id] = response;
                 $modalInstance.dismiss('cancel');
                 $rootScope.createUpdate = false;
+                if(response.customInformation.newsCategory==='Proposed project'||response.customInformation.newsCategory==='Spill') {
+                    $location.path('groupPages/' + response._id);
+                }
             });
 
             this.title = '';
@@ -1010,7 +1223,16 @@ angular.module('mean.groupPages',['uiGmapgoogle-maps','froala'])
           replace: 'false',
           template: '<div ng-repeat="thisChildGroupPage in childrenGroupPageArraysNow"><b ng-click="moveUp()" class="go-up glyphicon glyphicon-arrow-up"></b><b ng-click="moveDown()" class="go-down glyphicon glyphicon-arrow-down"></b> <button class="btn-success" ng-click="updateTextareaOrder()">Save</button> <h5 style="display:inline;">{{thisChildGroupPage.title}}</h5></div>'
         };
-    });
+    })
+
+    // Directive to add spills and news areas
+    .directive('addSpillsAndNewsInfo', function() {
+        return {
+          restrict: 'AE',
+          replace: 'false',
+          templateUrl: '/packages/contrib/groupPages/public/views/spillandnewsForms.html'
+        };
+    });;
 
 // FUNCTIONS
 //  @constructor

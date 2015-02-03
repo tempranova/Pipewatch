@@ -1,6 +1,9 @@
 <section class="container-fluid" data-ng-controller="GroupPagesController as vm" data-ng-init="findOne()">
   <!-- 
-    PROTECTOR PAGE
+    PAGES
+    - all contained inside protector page
+    - individual permissions for elements given depending on what category of page it is when loaded
+         ng-if ('Media','Protectors','News')
   --> 
  <!-- <div data-ng-if="privacyCheck(vm.groupPage)"> -->
   <div id="ProtectorPageController" ng-controller="ProtectorPageController">
@@ -8,9 +11,11 @@
         <h1>{{vm.groupPage.title}}</h1>
         <h5>{{vm.groupPage.category}}</h5>
         <h6>{{vm.groupPage.privacy}}</h6>
+        <hr>
       </div>
       <div class="row">
-          <div class="col-sm-8">
+          <div ng-if="groupPageCategory==='News'" add-spills-and-news-info></div>
+          <div ng-if="groupPageCategory!=='News'" class="col-sm-8">
               <!-- Page introduction area -->
               <div ng-show="showEditArea===true" ng-hide="!showEditArea||showEditArea===false"><textarea>{{vm.groupPage.content}}</textarea></div>
               <div ng-bind-html="sanitizedContent" ng-hide="hideCurrentContent===true" ng-show="!hideCurrentContent||hideCurrentContent===false"><p>{{sanitizedContent}}</p></div>
@@ -19,20 +24,19 @@
                 <a class="btn btn-danger" data-ng-click="remove(vm.groupPage);">Delete page</a>
               </div>
               <hr>
-              <div>
-                  <!-- Child pages, appear in left side, can be reordered -->
-                  <div ng-controller="EditChildPageController" ng-repeat="thisChildGroupPage in childrenGroupPageArraysNow">
-                      <h3>{{thisChildGroupPage.title}}</h3>
-                      <div data-ng-if="hasAuthorization(vm.groupPage)">
-                        <a class="btn btn-primary" ng-click="editChildPage()" ng-hide="thisChildGroupPage.showEditArea===true" ng-show="!thisChildGroupPage.showEditArea||thisChildGroupPage.showEditArea===false">Edit content</a>
-                        <a class="btn btn-success" ng-click="saveChildPage(thisChildGroupPage)" ng-show="thisChildGroupPage.showEditArea===true" ng-hide="!thisChildGroupPage.showEditArea||thisChildGroupPage.showEditArea===false">Save content</a>
-                        <a class="btn btn-danger" ng-click="deleteChildPage()">Delete</a>
-                      </div>
-                      <div ng-show="thisChildGroupPage.showEditArea===true" ng-hide="!thisChildGroupPage.showEditArea||thisChildGroupPage.showEditArea===false"><textarea froala="froalaOptions" ng-model="thisChildGroupPage.content"></textarea></div>
-                      <div ng-hide="thisChildGroupPage.showEditArea===true" ng-show="!thisChildGroupPage.showEditArea||thisChildGroupPage.showEditArea===false" ng-bind-html="thisChildGroupPage.htmlSafe">{{thisChildGroupPage.htmlSafe}}</div>
+              <!-- Child pages, appear in left side, can be reordered -->
+              <div ng-controller="EditChildPageController" ng-repeat="thisChildGroupPage in childrenGroupPageArraysNow">
+                  <h3>{{thisChildGroupPage.title}}</h3>
+                  <div data-ng-if="hasAuthorization(vm.groupPage)">
+                    <a class="btn btn-primary" ng-click="editChildPage()" ng-hide="thisChildGroupPage.showEditArea===true" ng-show="!thisChildGroupPage.showEditArea||thisChildGroupPage.showEditArea===false">Edit content</a>
+                    <a class="btn btn-success" ng-click="saveChildPage(thisChildGroupPage)" ng-show="thisChildGroupPage.showEditArea===true" ng-hide="!thisChildGroupPage.showEditArea||thisChildGroupPage.showEditArea===false">Save content</a>
+                    <a class="btn btn-danger" ng-click="deleteChildPage()">Delete</a>
                   </div>
+                  <div ng-show="thisChildGroupPage.showEditArea===true" ng-hide="!thisChildGroupPage.showEditArea||thisChildGroupPage.showEditArea===false"><textarea froala="froalaOptions" ng-model="thisChildGroupPage.content"></textarea></div>
+                  <div ng-hide="thisChildGroupPage.showEditArea===true" ng-show="!thisChildGroupPage.showEditArea||thisChildGroupPage.showEditArea===false" ng-bind-html="thisChildGroupPage.htmlSafe">{{thisChildGroupPage.htmlSafe}}</div>
               </div>
-                <!-- Page gallery -->
+              <!-- Page gallery -->
+              <div class="groupPageGallery">
                 <h4>Gallery</h4>
                 <!-- Upload abilities, only for page admin right now -->
                 <div data-ng-if="hasAuthorization(vm.groupPage)">
@@ -57,11 +61,12 @@
                 </div>
                 <!-- Gallery of images -->
                 <div id="links">
-                    <div data-ng-repeat="img in imageAttachments">
+                    <div data-ng-repeat="img in $root.imageAttachments">
                         <div class="col-md-3 col-sm-4 col-xs-6">
-                            <a href="{{img.src}}" title="Add title" data-gallery>
+                            <a href="{{img.src}}" data-gallery>
                                 <img style="margin:10px;box-shadow:2px 2px 2px #CCC;border:thin #ccc solid;" class="img-responsive" src="{{img.src}}" alt="Add alt">
                             </a>
+                            <button data-ng-if="hasAuthorization(vm.groupPage)" class="btn btn-danger" ng-click="deleteImage(img)">Delete</button>
                         </div>
                     </div>
                 </div>
@@ -98,6 +103,8 @@
                         </div>
                     </div>
                 </div>
+              </div>
+              <!-- end of gallery -->
                 <!-- Adding new text area form -->
                 <div ng-controller="AddTextareaController" ng-show="addTextarea.editingAllowed===true" class="ng-hide">
                   <hr>
@@ -138,7 +145,7 @@
                   </form>
                 </div>
           </div>
-          <div class="col-sm-4">
+          <div ng-if="groupPageCategory!=='News'" class="col-sm-4">
             <div data-ng-if="hasAuthorization(vm.groupPage)">
             <h4>Page Management</h4>
             <ul class="list-group">
@@ -162,134 +169,18 @@
             <li class="list-group-item">
                 <p class="lead">Add text area</p>
                 <p>These appear beneath the introduction text on the left. You can add any images, videos, links etc in the text areas.</p>
-                <button class="btn-primary" ng-click="addTextarea()" ng-show="editingAllowed===true" class="ng-hide">Add text area</button>
+                <button class="btn-primary" ng-click="addTextarea()" >Add text area</button>
             </li>
             <li class="list-group-item">
                 <p class="lead">Reorder text areas</p>
                 <p>Click the arrows to move text areas up and down.</p>
-                <button class="btn-primary" ng-click="rearrangeTextareas()" ng-show="editingAllowed===true" class="ng-hide">Rearrange text areas</button>
+                <button class="btn-primary" ng-click="rearrangeTextareas()">Rearrange text areas</button>
                 <div ng-controller="RearrangeTextareasController" ng-show="rearrangeTextareas.editingAllowed===true" class="ng-hide" rearrange-textareas></div>
             </li>
           </ul>
            <!-- End of management area -->
           </div>
+        </div>
       </div>
-  </div>
-  <!-- 
-    MEDIA PAGE
-  -->
-  <div id="MediaPageController" ng-controller="MediaPageController" ng-show="vm.groupPage.category ==='Media'" class="ng-hide">
-       <div class="col-sm-12 row text-center">
-        <h1>{{vm.groupPage.title}}</h1>
-        <h5>{{vm.groupPage.category}}</h5>
-        <h6>{{vm.groupPage.privacy}}</h6>
-       </div>
-       <div class="row">
-          <div class="col-sm-8">
-              <div data-ng-if="hasAuthorization(vm.groupPage)">
-                <a class="btn" href="/#!/groupPages/{{vm.groupPage._id}}/edit">
-                  <i class="glyphicon glyphicon-edit"></i>
-                </a>
-                <a class="btn" data-ng-click="remove(vm.groupPage);">
-                  <i class="glyphicon glyphicon-trash"></i>
-                </a>
-              </div>
-              <div>{{vm.groupPage.content}}</div>
-              <hr>
-                <h4>Gallery</h4>
-                <div id="links">
-                    <div data-ng-repeat="img in imageAttachments">
-                        <div class="col-md-3 col-sm-4 col-xs-6">
-                            <a href="{{img.src}}" title="Add title" data-gallery>
-                                <img style="margin:10px;box-shadow:2px 2px 2px #CCC;border:thin #ccc solid;" class="img-responsive" src="{{img.src}}" alt="Add alt">
-                            </a>
-                        </div>
-                    </div>
-                </div>
-                <div id="blueimp-gallery" class="blueimp-gallery">
-                    <!-- The container for the modal slides -->
-                    <div class="slides"></div>
-                    <!-- Controls for the borderless lightbox -->
-                    <h3 class="title"></h3>
-                    <a class="prev">‹</a>
-                    <a class="next">›</a>
-                    <a class="close">×</a>
-                    <a class="play-pause"></a>
-                    <ol class="indicator"></ol>
-                    <!-- The modal dialog, which will be used to wrap the lightbox content -->
-                    <div class="modal fade">
-                        <div class="modal-dialog">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <button type="button" class="close" aria-hidden="true">&times;</button>
-                                    <h4 class="modal-title"></h4>
-                                </div>
-                                <div class="modal-body next"></div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-default pull-left prev">
-                                        <i class="glyphicon glyphicon-chevron-left"></i>
-                                        Previous
-                                    </button>
-                                    <button type="button" class="btn btn-primary next">
-                                        Next
-                                        <i class="glyphicon glyphicon-chevron-right"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-           <div class="col-sm-4">
-            <div data-ng-if="hasAuthorization(vm.groupPage)">
-                <button ng-click="manageMembers()">Manage page members</button>
-                <div ng-controller="ManageMembersController" ng-show="manageMembers.editingAllowed===true" class="ng-hide" manage-members>
-                    <p>Type the name of the user to add to this page.</p>
-                    <button ng-click="init()">Populate List</button>
-                    <div class="form-group" ng-class="{ 'has-error' : submitted && groupPageForm.privacy.$invalid }">
-                      <label mean-token="'create-privacy'" for="privacy" class="col-md-3 control-label">Privacy</label>
-                      <div class="col-md-9">
-                        <select class="form-control" data-ng-model="addNewUser" id="addNewUser" ng-options="user.name for user in users"><option>Select User</option></select>
-                      </div>
-                    </div>
-                    <button ng-click="addUser()">Add User</button>
-                </div>
-           </div>
-                <button ng-click="googleStorage()">Google storage</button>
-                <div ng-controller="GoogleStorageController" ng-show="googleStorage.editingAllowed===true" class="ng-hide">
-                    <button id="authorize-button" style="visibility: hidden">Authorize</button>
-                    <button ng-click="listBuckets()">List Buckets</button>
-                </div>
-                <button ng-click="uploadFile()">Upload File</button>
-                <div ng-controller="MeanUploadController" ng-show="uploadFile.editingAllowed===true" class="ng-hide">
-                  <mean-upload file-dest="'/files/photos/'"
-                    upload-callback="uploadFinished2(files)"
-                    upload-file-callback="uploadFileCallback2(file)"></mean-upload>
-                    <div class="col-md-3 col-sm-4 col-xs-6">
-                        <div data-ng-repeat="img in newImageAttachments">
-                            <img class="img-responsive" data-ng-src="{{img.src}}" alt="">
-                            <p>Added!</p>
-                        </div>
-                    </div>
-                </div>
-           </div>
-      </div>
-  </div>
-  <!-- 
-    OTHER PAGE
-  -->
-  <div ng-controller="GroupPagesController" class="ng-hide">
-      <span>{{vm.groupPage.created | date:'medium'}}</span> /
-      <span>{{vm.groupPage.user.name}}</span>
-      <h2>{{vm.groupPage.title}}</h2>
-      <div data-ng-if="hasAuthorization(vm.groupPage)">
-        <a class="btn" href="/#!/groupPages/{{vm.groupPage._id}}/edit">
-          <i class="glyphicon glyphicon-edit"></i>
-        </a>
-        <a class="btn" data-ng-click="remove(vm.groupPage);">
-          <i class="glyphicon glyphicon-trash"></i>
-        </a>
-      </div>
-      <div>{{vm.groupPage.content}}</div>
   </div>
 </section>

@@ -63,7 +63,7 @@ var GroupPageSchema = new Schema({
   // News pages (contains spills, upcoming projects, etc)
   // Updates details { newsDate: String, companies: Array, spillCause : String, spillAmountAndTypes : Array, legalOutcomes : Object
   customInformation: {
-    type: Object, // { newsDate: String, companies: Array, spillCause : String, spillAmountAndTypes : Array, legalOutcomes : Object
+    type: Schema.Types.Mixed, // { newsDate: String, companies: Array, spillCause : String, spillAmountAndTypes : Array, legalOutcomes : Object
                   // environmentalEffects : Object, imageAttachments : Array, spillSources : Object }
     required: false,
     trim: true
