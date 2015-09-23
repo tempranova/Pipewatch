@@ -1,0 +1,173 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- PNG favicon -->
+    <link rel="icon" href="http://pipewatch.org/wp-content/uploads/2015/09/favicon-1.ico">
+      
+      <link href='http://fonts.googleapis.com/css?family=Nunito:400,700,300|Open+Sans:400,700' rel='stylesheet' type='text/css'>
+    <title>
+      <?php wp_title( '|', true, 'right' ); ?>
+      <?php bloginfo('name') ?>
+    </title>
+
+    <?php wp_head(); ?>
+      
+    <script src='//maps.googleapis.com/maps/api/js?sensor=false&libraries=places'></script>
+    <script src='https://code.jquery.com/jquery-2.1.4.min.js'></script>
+     <style>
+     html, body {
+         height:100%;
+     }
+     #map { 
+          width:100%;
+          height:100%;
+          position:absolute;
+     }
+     #pac-input {
+          background-color: #fff;
+          font-family: Roboto;
+          font-size: 15px;
+          font-weight: 300;
+          margin-left: 12px;
+          padding: 0 11px 0 13px;
+          text-overflow: ellipsis;
+          width: 300px;
+     }
+
+    #pac-input:focus {
+          border-color: #4d90fe;
+    }
+     </style>
+     <link rel="stylesheet" href="http://pipewatch.org/wp-content/uploads/2015/08/slider1.css">
+     <link rel="stylesheet" href="http://pipewatch.org/wp-content/themes/glwparent-child/css/pipewatch.css">
+      <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+      ga('create', 'UA-59992335-1', 'auto');
+      ga('send', 'pageview');
+
+    </script>
+  </head>
+
+  <body <?php body_class(); ?> ng-app="customMap">
+      
+    <div ng-controller="mapController">
+            <!-- <input id="pac-input" class="controls" type="text" placeholder="Search Box"> -->
+        <div id="map">
+        </div>
+    </div>   
+      
+    <header>
+
+          <!-- To customize, insert your header area styles from Bootstrap template -->
+          <!-- Make sure you keep the dynamic menu below -->
+
+          <!-- Menu -->
+        <div class="col-sm-3"></div>
+        <div class="col-sm-6">
+          <nav class="navbar navbar-default" role="navigation">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+            </div>
+
+              <!-- Menu styles -->
+                <?php
+                  $args = array(
+                    'menu'              => 'header-menu',
+                    'theme_location'    => 'header-menu',
+                    'depth'             => 2,
+                    'container'         => 'div',
+                    'container_class'   => 'collapse navbar-collapse',
+                    'container_id'      => 'bs-example-navbar-collapse-1',
+                    'menu_class'        => 'nav navbar-nav navbar-left',
+                    'fallback_cb'       => 'wp_bootstrap_navwalker::fallback',
+                    'walker'            => new wp_bootstrap_navwalker()
+                  );
+
+                  wp_nav_menu($args);
+                ?>
+          </nav>
+        </div>
+        <div class="col-sm-3"></div>
+    </header>
+      
+    <?php if(is_front_page()) { ?>
+    <!-- mobile -->
+    <div class="visible-xs mobile-container">
+        <p id="intro-info" class="float-box" style="margin:15px; width:60%;"><small>Welcome to Pipewatch. Click the button below to see some information about Canadian development.</small></p>
+        <button type="button" id="toggle-sidemenu" class="btn btn-primary btn-md" style="margin:15px;">Show Pipewatch Map Options ></button>
+        <div class="col-xs-12" id="sidemenu">
+            <div class="col-xs-6" style="margin-bottom:10px;">
+                <button class="proposed-projects-button btn btn-primary pipewatch-button"><small>Proposed Projects</small></button>
+            </div>
+            <div class="col-xs-6" style="margin-bottom:10px;">
+                <button class="spill-button btn btn-danger pipewatch-button"><small>Spill History</small></button>
+            </div>
+            <div class="col-xs-6">
+                <button class="pipelines-button btn btn-info pipewatch-button"><small>Pipelines</small></button>
+            </div>
+            <div class="col-xs-6">
+                <button class="updates-button btn btn-success pipewatch-button"><small>Land Defenders</small></button>
+            </div>
+            <div class="col-xs-12">
+                <div id="legend-display">
+                    <div class="col-sm-12 proposed" style="font-size:10px;"></div>
+                    <div class="col-sm-12 spills" style="font-size:10px;"></div>
+                    <div class="col-sm-12 updates" style="font-size:10px;"></div>
+                    <div class="col-sm-12 pipelines" style="font-size:10px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Front page stuff -->
+    <div class="container">
+        <!-- desktop -->
+        <div class="row hidden-xs">
+            <div id="legend-display" class="col-sm-6 col-xs-10 float-box" style="text-align:center;">
+                <div class="welcome-content">
+                    <div class="col-xs-6" style="margin-top:10px;">
+                        <img class="pw-logo" src="http://pipewatch.org/wp-content/uploads/2015/08/pipewatch-logo-small3-1.png">
+                        <h1 style="margin-top:5px;">Pipewatch.</h1>
+                    </div>
+                    <div class="col-xs-6" style="text-align:left;"><p style="margin-top:15px;"><small>We use maps to inform you about Canadian development, in hopes that you will be empowered. See <a href="http://native-land.net" target="_blank">Native-Land.net</a>, a sister project, for resources on Indigenous territories.</small></p></div>
+                </div>
+                <div class="col-sm-12 proposed"></div>
+                <div class="col-sm-12 spills"></div>
+                <div class="col-sm-12 updates"></div>
+                <div class="col-sm-12 pipelines"></div>
+            </div>
+            <div class="col-sm-6">
+                <p class="hidden-xs" style="text-shadow:2px 2px 2px #fff;">Click on any button to see information appear on the map.</p>
+                <div class="col-sm-6 col-xs-6" style="margin-bottom:10px;">
+                    <button class="proposed-projects-button btn btn-primary pipewatch-button">Proposed Projects</button>
+                </div>
+                <div class="col-sm-6 col-xs-6" style="margin-bottom:10px;">
+                    <button class="spill-button btn btn-danger pipewatch-button">Spill History</button>
+                </div>
+                <div class="col-sm-6 col-xs-6">
+                    <button class="pipelines-button btn btn-info pipewatch-button">Pipelines</button>
+                </div>
+                <div class="col-sm-6 col-xs-6">
+                    <button class="updates-button btn btn-success pipewatch-button">Land Defenders</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+    <?php } ?>
+
+      <!-- End insertion from Bootstrap template -->
+
