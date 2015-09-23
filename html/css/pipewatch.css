@@ -1,0 +1,26 @@
+.pipewatch-button {
+    width:100%;
+    box-shadow:2px 2px 2px #fff
+}
+.pw-logo {
+    width:50px; 
+    margin:0 auto;
+    display:block;
+}
+#legend-display {
+    text-align:center;
+    padding:5px;
+    margin:0 auto;
+    margin-top:15px;
+    background:rgba(255,255,255,0.7);
+}
+#sidemenu {
+    display:none;
+    padding:15px;
+    background:rgba(255,255,255,0.7);
+}
+.mobile-container {
+    width:100%;
+    position:absolute;
+    margin-top:20px;
+}
