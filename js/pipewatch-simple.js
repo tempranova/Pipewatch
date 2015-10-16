@@ -172,7 +172,7 @@
                     $('.proposed').empty();
                 } else {
                     addMarkers(allProposed, 'proposed-project');
-                    $('.welcome-content').empty();
+                    $('.welcome-content').html('<p><small>Select options below. Submit more markers by <a href="mailto:tempranova@gmail.com">emailing us</a>.</small></p>');
                     // checking for other stuff in legend
                     var htmlToAdd = '<div class="col-sm-4 hidden-xs"><h5>Proposed Projects:</h5></div><div class="col-sm-8"><div class="proposedSlider">'+
                                                   '<input type="text" class="span2 slider" value=""'+
@@ -232,7 +232,7 @@
                     $('.spills').empty();
                 } else {
                     addMarkers(allSpills, 'spill');
-                    $('.welcome-content').empty();
+                    $('.welcome-content').html('<p><small>Select options below. Submit more markers by <a href="mailto:tempranova@gmail.com">emailing us</a>.</small></p>');
                     // Check for other stuff in legend
                     var htmlToAdd = '<div class="col-sm-4 hidden-xs"><h5>Spill History:</h5></div><div class="col-sm-8"><div class="spillSlider">'+
                                               '<input name="spillSlider" type="text" class="span2 slider" value=""'+
@@ -285,7 +285,7 @@
                     $('.pipelines').empty();
                 } else {
                     addPipelines(map);
-                    $('.welcome-content').empty();
+                    $('.welcome-content').html('<p><small>Select options below. Submit more markers by <a href="mailto:tempranova@gmail.com">emailing us</a>.</small></p>');
                     // Check for other stuff in legend
                     var htmlToAdd = '<div class="col-sm-4 hidden-xs"><h5>Proposed Pipelines:</h5></div><div class="col-sm-8"><div class="pipelinesSlider">'+
                                                   '<input type="text" class="span2 slider" value=""'+
@@ -412,3 +412,21 @@
             });
             array = [];
         }
+// Initialize off-canvas for mobile legend
+         $(document).ready(function () {
+          $('[data-toggle="offcanvas"]').click(function () {
+            $('.row-offcanvas').toggleClass('why');
+          });
+         });
+         // Set up toggling the sidemenu
+         $('#toggle-sidemenu').click(function() {
+             $('#intro-info').hide();
+             $('#sidemenu').toggle(0);
+             if($('button#toggle-sidemenu').html()==='Hide Pipewatch Map Options &gt;') {
+                $('button#toggle-sidemenu').html('Show Pipewatch Map Options >');
+                $('#sidemenu').css('pointer-events','none');
+             } else {
+                $('button#toggle-sidemenu').html('Hide Pipewatch Map Options >');
+                $('#sidemenu').css('pointer-events','all');
+             }
+         });
