@@ -30,21 +30,21 @@
             var rawUpdatesJSON = '';
             var rawProposedJSON = '';
             $.ajax({
-                 url:"http://pipewatch.org/api/?post_type=spills&count=100&json=1",
+                 url:"http://pipewatch.org/api/?post_type=spills&count=500&json=1",
                  async: false,
                  dataType: 'jsonp', // Notice! JSONP <-- P (lowercase)
                  success:function(json){
                      // do stuff with json (in this case an array)
                     rawSpillsJSON = json;
                     $.ajax({
-                         url:"http://pipewatch.org/api/?post_type=updates&count=100&json=1",
+                         url:"http://pipewatch.org/api/?post_type=updates&count=500&json=1",
                          async: false,
                          dataType: 'jsonp', // Notice! JSONP <-- P (lowercase)
                          success:function(json){
                              // do stuff with json (in this case an array)
                             rawUpdatesJSON = json;
                             $.ajax({
-                                 url:"http://pipewatch.org/api/?post_type=proposed-projects&count=100&json=1",
+                                 url:"http://pipewatch.org/api/?post_type=proposed-projects&count=500&json=1",
                                  async: false,
                                  dataType: 'jsonp', // Notice! JSONP <-- P (lowercase)
                                  success:function(json){
